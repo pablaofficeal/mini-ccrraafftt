@@ -49,6 +49,61 @@ void updateCamera(const bool keys[]) {
     if (keys['c']) {
         cameraPos.y -= speed;
     }
+    if (keys['q']) {
+        cameraYaw -= speed * 10.0f; // Поворот влево
+    }
+    if (keys['e']) {
+        cameraYaw += speed * 10.0f; // Поворот вправо
+    }
+    if (cameraYaw < 0.0f) {
+        cameraYaw += 360.0f; // Нормализация угла
+    } else if (cameraYaw >= 360.0f) {
+        cameraYaw -= 360.0f; // Нормализация угла
+    }
+    {
+        // Ограничение угла наклона камеры
+        if (cameraPitch > 89.0f) cameraPitch = 89.0f;
+        if (cameraPitch < -89.0f) cameraPitch = -89.0f;
+    }
+    if (cameraPos.y < 0.0f) {
+        cameraPos.y = 0.0f; // Ограничение высоты камеры
+    }
+    if (cameraPos.x < -100.0f) cameraPos.x = -100.0f; // Ограничение по X
+    if (cameraPos.x > 100.0f) cameraPos.x = 100.0f; // Ограничение по X
+    if (cameraPos.z < -100.0f) cameraPos.z = -100.0f; // Ограничение по Z
+    if (cameraPos.z > 100.0f) cameraPos.z = 100.0f; // Ограничение по Z 
+    if (cameraPos.y > 100.0f) cameraPos.y = 100.0f; // Ограничение по Y
+    if (cameraPos.y < 0.0f) cameraPos.y = 0.0f; // Ограничение по Y
+
+    // делаем чтобы камера опускалась ниже через обработку клавиши shift
+    if (keys['L']) {
+        cameraPos.y -= speed * 2.0f; // Ускоренное движение вниз
+        if (cameraPos.y < 0.0f) cameraPos.y = 0.0f; // Ограничение высоты камеры
+    }
+    if (keys['R']) {
+        cameraPos.y += speed * 2.0f; // Ускоренное движение вверх
+        if (cameraPos.y > 100.0f) cameraPos.y = 100.0f; // Ограничение высоты камеры
+    }
+        
+    if (keys['H']) {
+        cameraPos.y += speed * 2.0f; // Ускоренное движение вверх
+        if (cameraPos.y > 100.0f) cameraPos.y = 100.0f; // Ограничение высоты камеры
+        
+    }
+    if (keys['H']) {
+        cameraPos.y += speed * 2.0f; // Ускоренное движение вверх
+        if (cameraPos.y > 100.0f) cameraPos.y = 100.0f; // Ограничение высоты камеры
+    }
+    if (cameraPos.x < -100.0f) cameraPos.x = -100.0f; // Ограничение по X
+    if (cameraPos.x > 100.0f) cameraPos.x = 100.0f; // Ограничение по X
+    if (cameraPos.z < -100.0f) cameraPos.z = -100.0f; // Ограничение по Z
+    if (cameraPos.z > 100.0f) cameraPos.z = 100.0f; // Ограничение по Z
+    if (cameraPos.y < 0.0f) cameraPos.y = 0.0f; // Ограничение высоты камеры
+    if (cameraPos.y > 100.0f) cameraPos.y = 100.0f; // Ограничение высоты камеры
+    if (cameraPos.y < 0.0f) cameraPos.y = 0.0f; // Ограничение высоты камеры
+    if (cameraPos.y > 100.0f) cameraPos.y = 100.0f; // Ограничение высоты камеры
+    if (cameraPos.x < -100.0f) cameraPos.x = -100.0f; // Ограничение по X
+    if (cameraPos.x > 100.0f) cameraPos.x = 100.0f; // Ограничение по X
 }
 
 void processMouseMovement(float x, float y) {
