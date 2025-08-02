@@ -28,11 +28,17 @@ static std::vector<Cube> worldCubes;
 // Флаг, чтобы убедиться, что мы генерируем мир только один раз
 static bool worldGenerated = false;
 
+// Функция для процедурной генерации мира (forward declaration)
+static void generateWorld();
+
 void initRenderer() {
     // Создаем и компилируем нашу шейдерную программу
     shaderProgram = createShaderProgram("src/shaders/simple.vert", "src/shaders/simple.frag");
 
-    // Данные вершин для куба (позиция + цвет)
+    // Настройки OpenGL
+    glEnable(GL_CULL_FACE); // Включаем отсечение невидимых граней
+
+    // Данные вершин для куба (позиция + цвет) - 36 вершин (6 граней * 2 треугольника * 3 вершины)
     float cubeVertices[] = {
         // positions          // colors
         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f, // cyan
@@ -49,12 +55,12 @@ void initRenderer() {
         -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
         -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
 
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f, // blue
-        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, // red
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
 
          0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f, // yellow
          0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
@@ -63,19 +69,59 @@ void initRenderer() {
          0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
          0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
 
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f, // blue
+        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+
         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f, // green
          0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
          0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
          0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+
+
+            0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f, // magenta
+            0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f, // magenta
+            0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+
 
         -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f, // magenta
          0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
          0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
          0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
         -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f
+        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
+
+
+        -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f, // yellow
+         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
+
+
+        -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f, // yellow
+         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+
+        
     };
 
     // Настройка VAO и VBO для куба
@@ -105,21 +151,27 @@ void initRenderer() {
          groundSize, 0.0f, -groundSize,  0.3f, 0.5f, 0.3f,
          groundSize, 0.0f,  groundSize,  0.3f, 0.5f, 0.3f,
         -groundSize, 0.0f,  groundSize,  0.3f, 0.5f, 0.3f
+
     };
 
-    // Настройка VAO и VBO для земли
+    // Создаем VAO и VBO для земли
     glGenVertexArrays(1, &groundVAO);
     glGenBuffers(1, &groundVBO);
     glBindVertexArray(groundVAO);
     glBindBuffer(GL_ARRAY_BUFFER, groundVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(groundVertices), groundVertices, GL_STATIC_DRAW);
+    // Атрибут позиции для земли
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    // Атрибут цвета для земли
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    // Генерируем мир (колонны из кубов)
+    generateWorld();
 }
 
 // Функция для процедурной генерации мира

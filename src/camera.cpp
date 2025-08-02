@@ -5,6 +5,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+// Константы для управления камерой и ограничениями
+const float MOVEMENT_SPEED = 0.1f;
+const float MOUSE_SENSITIVITY = 0.1f;
+const float YAW_TURN_SPEED_MULTIPLIER = 10.0f;
+const float MAX_PITCH = 89.0f;
+const float MIN_PITCH = -89.0f;
+const float WORLD_BOUNDARY = 100.0f;
+const float MIN_HEIGHT = 0.0f;
+const float MAX_HEIGHT = 100.0f;
+
 // Переменные состояния камеры (статические, чтобы быть видимыми только в этом файле)
 static glm::vec3 cameraPos = glm::vec3(0.0f, 1.0f, 3.0f);
 static float cameraPitch = -10.0f;
@@ -14,96 +24,57 @@ static float cameraYaw = 0.0f;
 static float lastX = 400, lastY = 300;
 static bool firstMouse = true;
 
-// Более точное значение PI
-const float M_PI_F = 3.14159265358979323846f;
-
 void updateCamera(const bool keys[]) {
-    float speed = 0.1f;
-    
-    // Рассчитываем векторы для движения вперед/вбок без учета вертикального наклона
-    glm::vec3 front;
-    front.x = cos(glm::radians(cameraYaw));
-    front.z = sin(glm::radians(cameraYaw));
-    front = glm::normalize(front);
+    // Рассчитываем векторы для движения вперед/вбок, основываясь только на рыскании (yaw)
+    // Это создает "летающий" стиль управления, где наклон (pitch) не влияет на плоскость движения
+    glm::vec3 front_horizontal;
+    front_horizontal.x = cos(glm::radians(cameraYaw));
+    front_horizontal.y = 0.0f; // Движение строго по горизонтали
+    front_horizontal.z = sin(glm::radians(cameraYaw));
+    front_horizontal = glm::normalize(front_horizontal);
 
-    glm::vec3 right = glm::normalize(glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f)));
+    glm::vec3 right = glm::normalize(glm::cross(front_horizontal, glm::vec3(0.0f, 1.0f, 0.0f)));
 
     if (keys['w']) {
-        // Движение вперед относительно направления камеры по горизонтали
-        cameraPos.x += sin(glm::radians(cameraYaw)) * speed;
-        cameraPos.z -= cos(glm::radians(cameraYaw)) * speed;
+        // Движение вперед. Этот код более стандартный: cameraPos += front * speed.
+        cameraPos += front_horizontal * MOVEMENT_SPEED;
     }
     if (keys['s']) {
-        cameraPos.x -= sin(glm::radians(cameraYaw)) * speed;
-        cameraPos.z += cos(glm::radians(cameraYaw)) * speed;
+        cameraPos -= front_horizontal * MOVEMENT_SPEED;
     }
     if (keys['a']) {
-        cameraPos -= right * speed;
+        cameraPos -= right * MOVEMENT_SPEED;
     }
     if (keys['d']) {
-        cameraPos += right * speed;
+        cameraPos += right * MOVEMENT_SPEED;
     }
     if (keys[' ']) {
-        cameraPos.y += speed;
+        cameraPos.y += MOVEMENT_SPEED;
     }
     if (keys['c']) {
-        cameraPos.y -= speed;
+        cameraPos.y -= MOVEMENT_SPEED;
     }
     if (keys['q']) {
-        cameraYaw -= speed * 10.0f; // Поворот влево
+        cameraYaw -= MOVEMENT_SPEED * YAW_TURN_SPEED_MULTIPLIER; // Поворот влево
     }
     if (keys['e']) {
-        cameraYaw += speed * 10.0f; // Поворот вправо
+        cameraYaw += MOVEMENT_SPEED * YAW_TURN_SPEED_MULTIPLIER; // Поворот вправо
     }
-    if (cameraYaw < 0.0f) {
-        cameraYaw += 360.0f; // Нормализация угла
-    } else if (cameraYaw >= 360.0f) {
-        cameraYaw -= 360.0f; // Нормализация угла
-    }
-    {
-        // Ограничение угла наклона камеры
-        if (cameraPitch > 89.0f) cameraPitch = 89.0f;
-        if (cameraPitch < -89.0f) cameraPitch = -89.0f;
-    }
-    if (cameraPos.y < 0.0f) {
-        cameraPos.y = 0.0f; // Ограничение высоты камеры
-    }
-    if (cameraPos.x < -100.0f) cameraPos.x = -100.0f; // Ограничение по X
-    if (cameraPos.x > 100.0f) cameraPos.x = 100.0f; // Ограничение по X
-    if (cameraPos.z < -100.0f) cameraPos.z = -100.0f; // Ограничение по Z
-    if (cameraPos.z > 100.0f) cameraPos.z = 100.0f; // Ограничение по Z 
-    if (cameraPos.y > 100.0f) cameraPos.y = 100.0f; // Ограничение по Y
-    if (cameraPos.y < 0.0f) cameraPos.y = 0.0f; // Ограничение по Y
 
-    // делаем чтобы камера опускалась ниже через обработку клавиши shift
-    if (keys['L']) {
-        cameraPos.y -= speed * 2.0f; // Ускоренное движение вниз
-        if (cameraPos.y < 0.0f) cameraPos.y = 0.0f; // Ограничение высоты камеры
+    // Нормализация угла рыскания (yaw)
+    cameraYaw = fmod(cameraYaw, 360.0f);
+    if (cameraYaw < 0.0f) {
+        cameraYaw += 360.0f;
     }
-    if (keys['R']) {
-        cameraPos.y += speed * 2.0f; // Ускоренное движение вверх
-        if (cameraPos.y > 100.0f) cameraPos.y = 100.0f; // Ограничение высоты камеры
-    }
-        
-    if (keys['H']) {
-        cameraPos.y += speed * 2.0f; // Ускоренное движение вверх
-        if (cameraPos.y > 100.0f) cameraPos.y = 100.0f; // Ограничение высоты камеры
-        
-    }
-    if (keys['H']) {
-        cameraPos.y += speed * 2.0f; // Ускоренное движение вверх
-        if (cameraPos.y > 100.0f) cameraPos.y = 100.0f; // Ограничение высоты камеры
-    }
-    if (cameraPos.x < -100.0f) cameraPos.x = -100.0f; // Ограничение по X
-    if (cameraPos.x > 100.0f) cameraPos.x = 100.0f; // Ограничение по X
-    if (cameraPos.z < -100.0f) cameraPos.z = -100.0f; // Ограничение по Z
-    if (cameraPos.z > 100.0f) cameraPos.z = 100.0f; // Ограничение по Z
-    if (cameraPos.y < 0.0f) cameraPos.y = 0.0f; // Ограничение высоты камеры
-    if (cameraPos.y > 100.0f) cameraPos.y = 100.0f; // Ограничение высоты камеры
-    if (cameraPos.y < 0.0f) cameraPos.y = 0.0f; // Ограничение высоты камеры
-    if (cameraPos.y > 100.0f) cameraPos.y = 100.0f; // Ограничение высоты камеры
-    if (cameraPos.x < -100.0f) cameraPos.x = -100.0f; // Ограничение по X
-    if (cameraPos.x > 100.0f) cameraPos.x = 100.0f; // Ограничение по X
+
+    // Ограничение угла наклона (pitch)
+    if (cameraPitch > MAX_PITCH) cameraPitch = MAX_PITCH;
+    if (cameraPitch < MIN_PITCH) cameraPitch = MIN_PITCH;
+
+    // Ограничение позиции камеры в пределах мира
+    cameraPos.x = glm::clamp(cameraPos.x, -WORLD_BOUNDARY, WORLD_BOUNDARY);
+    cameraPos.y = glm::clamp(cameraPos.y, MIN_HEIGHT, MAX_HEIGHT);
+    cameraPos.z = glm::clamp(cameraPos.z, -WORLD_BOUNDARY, WORLD_BOUNDARY);
 }
 
 void processMouseMovement(float x, float y) {
@@ -118,15 +89,14 @@ void processMouseMovement(float x, float y) {
     lastX = x;
     lastY = y;
 
-    float sensitivity = 0.1f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
+    xoffset *= MOUSE_SENSITIVITY;
+    yoffset *= MOUSE_SENSITIVITY;
 
     cameraYaw += xoffset;
     cameraPitch += yoffset;
 
-    if (cameraPitch > 89.0f) cameraPitch = 89.0f;
-    if (cameraPitch < -89.0f) cameraPitch = -89.0f;
+    if (cameraPitch > MAX_PITCH) cameraPitch = MAX_PITCH;
+    if (cameraPitch < MIN_PITCH) cameraPitch = MIN_PITCH;
 }
 
 glm::mat4 getViewMatrix() {
@@ -139,4 +109,8 @@ glm::mat4 getViewMatrix() {
     glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
     return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+}
+
+glm::vec3 getCameraPos() {
+    return cameraPos;
 }
