@@ -2,10 +2,11 @@
 #include <GL/gl.h>
 #include <cmath>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 // Переменные состояния камеры (статические, чтобы быть видимыми только в этом файле)
-static float cameraX = 0.0f;
-static float cameraY = 1.0f;
-static float cameraZ = 3.0f;
+static glm::vec3 cameraPos = glm::vec3(0.0f, 1.0f, 3.0f);
 static float cameraPitch = -10.0f;
 static float cameraYaw = 0.0f;
 
@@ -18,36 +19,36 @@ const float M_PI_F = 3.14159265358979323846f;
 
 void updateCamera(const bool keys[]) {
     float speed = 0.1f;
-    float yawRad = cameraYaw * M_PI_F / 180.0f;
+    
+    // Рассчитываем векторы для движения вперед/вбок без учета вертикального наклона
+    glm::vec3 front;
+    front.x = cos(glm::radians(cameraYaw));
+    front.z = sin(glm::radians(cameraYaw));
+    front = glm::normalize(front);
+
+    glm::vec3 right = glm::normalize(glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f)));
 
     if (keys['w']) {
-        cameraX += sin(yawRad) * speed;
-        cameraZ -= cos(yawRad) * speed;
+        // Движение вперед относительно направления камеры по горизонтали
+        cameraPos.x += sin(glm::radians(cameraYaw)) * speed;
+        cameraPos.z -= cos(glm::radians(cameraYaw)) * speed;
     }
     if (keys['s']) {
-        cameraX -= sin(yawRad) * speed;
-        cameraZ += cos(yawRad) * speed;
+        cameraPos.x -= sin(glm::radians(cameraYaw)) * speed;
+        cameraPos.z += cos(glm::radians(cameraYaw)) * speed;
     }
     if (keys['a']) {
-        cameraX -= cos(yawRad) * speed;
-        cameraZ -= sin(yawRad) * speed;
+        cameraPos -= right * speed;
     }
     if (keys['d']) {
-        cameraX += cos(yawRad) * speed;
-        cameraZ += sin(yawRad) * speed;
+        cameraPos += right * speed;
     }
     if (keys[' ']) {
-        cameraY += speed;
+        cameraPos.y += speed;
     }
     if (keys['c']) {
-        cameraY -= speed;
+        cameraPos.y -= speed;
     }
-}
-
-void applyCameraView() {
-    glRotatef(-cameraPitch, 1.0f, 0.0f, 0.0f);
-    glRotatef(-cameraYaw, 0.0f, 1.0f, 0.0f);
-    glTranslatef(-cameraX, -cameraY, -cameraZ);
 }
 
 void processMouseMovement(float x, float y) {
@@ -71,4 +72,16 @@ void processMouseMovement(float x, float y) {
 
     if (cameraPitch > 89.0f) cameraPitch = 89.0f;
     if (cameraPitch < -89.0f) cameraPitch = -89.0f;
+}
+
+glm::mat4 getViewMatrix() {
+    glm::vec3 front;
+    front.x = cos(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
+    front.y = sin(glm::radians(cameraPitch));
+    front.z = sin(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
+    glm::vec3 cameraFront = glm::normalize(front);
+
+    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 }

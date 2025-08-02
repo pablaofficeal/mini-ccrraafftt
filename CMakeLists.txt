@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(GLUT REQUIRED)
+find_package(glm REQUIRED)
 
 # Добавляем исполняемый файл
 add_executable(pvo_app
@@ -15,6 +16,7 @@ add_executable(pvo_app
     src/camera.cpp
     src/input.cpp
     src/renderer.cpp
+    src/shader.cpp
 )
 
 # Подключаем заголовочные файлы
@@ -22,6 +24,7 @@ target_include_directories(pvo_app PRIVATE
     ${OPENGL_INCLUDE_DIRS}
     ${GLEW_INCLUDE_DIRS}
     ${GLUT_INCLUDE_DIRS}
+    ${GLM_INCLUDE_DIRS}
 )
 
 # Подключаем библиотеки
@@ -32,4 +35,4 @@ target_link_libraries(pvo_app
 )
 
 # Копируем шейдеры в директорию сборки
-file(COPY src/shaders DESTINATION ${CMAKE_BINARY_DIR}) 
+file(COPY src/shaders DESTINATION ${CMAKE_BINARY_DIR}/src)

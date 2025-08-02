@@ -1,19 +1,20 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include <iostream>
-#include <cstdlib> // Для exit()
-
+#include <cstdlib> 
+#include <ctime>   // для time()
+ 
 #include "renderer.h"
 #include "input.h"
 
 void update(int value) {
-    (void)value; // Подавляем предупреждение о неиспользуемом параметре
+    (void)value;
     glutPostRedisplay();
-    glutTimerFunc(16, update, 0); // ~60 FPS
+    glutTimerFunc(16, update, 0);
 }
 
 void initOpenGL() {
-    // Инициализация GLEW
+    // Важно: GLEW должен быть инициализирован до вызова любых других функций OpenGL
     GLenum err = glewInit();
     if (err != GLEW_OK) {
         std::cerr << "Ошибка инициализации GLEW: " << glewGetErrorString(err) << std::endl;
@@ -22,6 +23,9 @@ void initOpenGL() {
     
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+    // Инициализируем наш рендерер (создаем VBO, шейдеры и т.д.)
+    initRenderer();
     
     // Настраиваем обработчики событий из нашего модуля ввода
     glutKeyboardFunc(keyboardFunc);
@@ -34,6 +38,9 @@ void initOpenGL() {
 }
 
 int main(int argc, char** argv) {
+    // Инициализируем генератор случайных чисел
+    srand(time(NULL));
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 600);
@@ -48,4 +55,3 @@ int main(int argc, char** argv) {
     glutMainLoop();
     return 0;
 }
-
