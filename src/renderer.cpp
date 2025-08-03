@@ -92,6 +92,9 @@ void initRenderer() {
             0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
             0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
             0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+
+
         -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
         -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f,
          0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f, // magenta
@@ -151,8 +154,69 @@ void initRenderer() {
          groundSize, 0.0f, -groundSize,  0.3f, 0.5f, 0.3f,
          groundSize, 0.0f,  groundSize,  0.3f, 0.5f, 0.3f,
         -groundSize, 0.0f,  groundSize,  0.3f, 0.5f, 0.3f
-
     };
+
+    for (int i = 18; i < 54; ++i) {
+        groundVertices[i] = 0.0f; // Инициализируем остальные вершины нулями
+    }
+    {
+    // Добавляем дополнительные вершины для земли, чтобы она была более сложной
+    groundVertices[18] = -groundSize; // x
+    groundVertices[19] = 0.0f; // y
+    groundVertices[20] = -groundSize; // z
+    groundVertices[21] = 0.3f; // r
+    groundVertices[22] = 0.5f; // g
+    groundVertices[23] = 0.3f; // b
+
+    groundVertices[24] = groundSize; // x
+    groundVertices[25] = 0.0f; // y
+    groundVertices[26] = groundSize; // z
+    groundVertices[27] = 0.3f; // r
+    groundVertices[28] = 0.5f; // g
+    groundVertices[29] = 0.3f; // b
+    groundVertices[30] =  groundSize; // x
+    groundVertices[31] = 0.0f; // y
+    groundVertices[32] = -groundSize; // z
+    groundVertices[33] = 0.3f; // r
+    groundVertices[34] = 0.5f; // g
+    groundVertices[35] = 0.3f; // b
+
+    // Другие вершины для земли
+    groundVertices[36] = -groundSize; // x
+    groundVertices[37] = 0.0f; // y
+    groundVertices[38] = -groundSize; // z
+    groundVertices[39] = 0.3f; // r
+    groundVertices[40] = 0.5f; // g
+    groundVertices[41] = 0.3f; // b
+    groundVertices[42] = groundSize; // x
+    groundVertices[43] = 0.0f; // y
+    groundVertices[44] = groundSize; // z
+    groundVertices[45] = 0.3f; // r
+    groundVertices[46] = 0.5f; // g
+    groundVertices[47] = 0.3f; // b
+    groundVertices[48] = groundSize; // x
+    groundVertices[49] = 0.0f; // y
+    groundVertices[50] = -groundSize; // z
+    groundVertices[51] = 0.3f; // r
+    groundVertices[52] = 0.5f; // g
+    groundVertices[53] = 0.3f; // b
+
+
+    groundVertices[54] = -groundSize; // x
+    groundVertices[55] = 0.0f; // y
+    groundVertices[56] = groundSize; // z
+    groundVertices[57] = 0.3f; // r
+    groundVertices[58] = 0.5f; // g
+    groundVertices[59] = 0.3f; // b
+    groundVertices[60] = groundSize; // x
+    groundVertices[61] = 0.0f; // y
+    groundVertices[62] = groundSize; // z
+    groundVertices[63] = 0.3f; // r
+    groundVertices[64] = 0.5f; // g
+    groundVertices[65] = 0.3f; // b
+    };
+
+    // 
 
     // Создаем VAO и VBO для земли
     glGenVertexArrays(1, &groundVAO);
@@ -172,6 +236,15 @@ void initRenderer() {
 
     // Генерируем мир (колонны из кубов)
     generateWorld();
+    worldGenerated = true;
+
+    // Устанавливаем начальное состояние камеры
+    updateCamera(getKeyboardState());
+    glutPostRedisplay();
+    // Устанавливаем функцию отрисовки
+    glutDisplayFunc(drawWorld);
+    // Устанавливаем функцию обновления
+    glutIdleFunc(drawWorld);
 }
 
 // Функция для процедурной генерации мира
@@ -194,6 +267,12 @@ static void generateWorld() {
         }
     }
 }
+
+const std::vector<Cube>& getGeneratedCubes() {
+    return worldCubes;
+}
+
+// Основная функция отрисовки, регистрируется как display func в GLUT
 
 void drawWorld() {
     // Генерируем мир при первом вызове
@@ -236,4 +315,28 @@ void drawWorld() {
 
     glBindVertexArray(0);
     glutSwapBuffers();
+}
+
+void cleanupRenderer() {
+    // Освобождаем ресурсы OpenGL
+    glDeleteVertexArrays(1, &cubeVAO);
+    glDeleteBuffers(1, &cubeVBO);
+    glDeleteVertexArrays(1, &groundVAO);
+    glDeleteBuffers(1, &groundVBO);
+    glDeleteProgram(shaderProgram);
+}
+
+
+void setWorldGenerated(bool generated) {
+    worldGenerated = generated;
+}
+bool isWorldGenerated() {
+    return worldGenerated;
+}
+
+void setWorldCubes(const std::vector<Cube>& cubes) {
+    worldCubes = cubes;
+}
+const std::vector<Cube>& getWorldCubes() {
+    return worldCubes;
 }

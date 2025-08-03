@@ -6,6 +6,7 @@
  
 #include "renderer.h"
 #include "input.h"
+#include "world.h"
 
 void update(int value) {
     (void)value;
