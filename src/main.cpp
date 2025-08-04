@@ -43,6 +43,9 @@ int main(int argc, char** argv) {
     // Инициализируем генератор случайных чисел
     srand(time(NULL));
 
+    // Генерируем мир
+    World::generateWorld(time(NULL));
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 600);

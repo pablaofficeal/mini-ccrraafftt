@@ -12,7 +12,7 @@ struct Cube {
 class World {
 public:
     // Генерирует кубы для мира
-    static void generateWorld();
+    static void generateWorld(unsigned int seed);
 
     // Возвращает константную ссылку на вектор сгенерированных кубов
     static const std::vector<Cube>& getGeneratedCubes();

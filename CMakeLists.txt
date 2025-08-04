@@ -17,6 +17,8 @@ add_executable(pvo_app
     src/input.cpp
     src/renderer.cpp
     src/shader.cpp
+    src/world.cpp
+    src/PerlinNoise.cpp
 )
 
 # Подключаем заголовочные файлы
