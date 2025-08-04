@@ -60,7 +60,16 @@ void updateCamera(const bool keys[]) {
     if (keys['e']) {
         cameraYaw += MOVEMENT_SPEED * YAW_TURN_SPEED_MULTIPLIER; // Поворот вправо
     }
-
+/*
+    // поворот камеры в низ
+    if (keys['z']) {
+        cameraPitch -= MOVEMENT_SPEED * YAW_TURN_SPEED_MULTIPLIER; // Поворот вниз
+    }
+    // поворот камеры в верх
+    if (keys['x']) {
+        cameraPitch += MOVEMENT_SPEED * YAW_TURN_SPEED_MULTIPLIER; // Поворот вверх
+    }
+*/
     // Нормализация угла рыскания (yaw)
     cameraYaw = fmod(cameraYaw, 360.0f);
     if (cameraYaw < 0.0f) {

@@ -124,6 +124,21 @@ void initRenderer() {
          0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
          0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
 
+        -0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
+
+        // Верхняя грань
+        -0.5f,  0.5f, -0.5f,  1.0f, 0.5f, 0.5f, // light red
+         0.5f,  0.5f, -0.5f,  1.0f, 0.5f, 0.5f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.5f, 0.5f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.5f, 0.5f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.5f, 0.5f,
+
+
         
     };
 
@@ -311,6 +326,14 @@ void drawWorld() {
         model = glm::translate(model, glm::vec3(cube.x, cube.y, cube.z));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        // Рисуем верхнюю грань куба
+        model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f)); // Поднимаем на 0.5f
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        glDrawArrays(GL_TRIANGLES, 36, 6); // Рисуем верхнюю грань (6 вершин)
+        // Рисуем нижнюю грань куба
+        model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // Опускаем на 0.5f
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        glDrawArrays(GL_TRIANGLES, 42, 6); // Рисуем нижнюю грань (6 вершин)
     }
 
     glBindVertexArray(0);
